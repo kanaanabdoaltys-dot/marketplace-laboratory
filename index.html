@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketplace Laboratory – Supply & Demand</title>
+<style>
+:root{
+  --bg:#08111f;
+  --bg2:#0e1b2e;
+  --panel:rgba(18,31,51,.82);
+  --panel2:rgba(22,39,64,.88);
+  --border:rgba(255,255,255,.10);
+  --text:#eef5ff;
+  --muted:#91a4bd;
+  --green:#8bd450;
+  --green2:#b7f27e;
+  --blue:#49a7ff;
+  --purple:#9b8cff;
+  --red:#ff6571;
+  --gold:#f2c14e;
+  --cyan:#50e3d2;
+  --input:#0b182a;
+  --shadow:0 18px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(73,167,255,.15),transparent 30%),
+    radial-gradient(circle at 92% 8%,rgba(139,212,80,.10),transparent 28%),
+    linear-gradient(135deg,var(--bg),var(--bg2));
+}
+body:before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; opacity:.28;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+.wrap{max-width:1500px;margin:0 auto;padding:28px 24px 40px;position:relative}
+.titlebar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:22px 26px;margin-bottom:18px;
+  background:linear-gradient(135deg,rgba(20,37,61,.92),rgba(12,25,43,.82));
+  border:1px solid var(--border);border-radius:18px;
+  box-shadow:var(--shadow);backdrop-filter:blur(16px);
+}
+h1{
+  margin:0;font-size:27px;letter-spacing:-.5px;font-weight:750;
+  color:var(--text);
+}
+h1:before{content:"";display:inline-block;width:9px;height:28px;border-radius:5px;background:var(--green);vertical-align:-5px;margin-right:12px;box-shadow:0 0 20px rgba(139,212,80,.45)}
+.tag{
+  font-size:12px;text-transform:uppercase;letter-spacing:1.4px;
+  color:var(--muted);font-weight:700;
+}
+.grid{display:grid;grid-template-columns:1.05fr 1fr;gap:18px}
+.panel{
+  background:var(--panel);border:1px solid var(--border);border-radius:18px;
+  padding:22px;box-shadow:var(--shadow);backdrop-filter:blur(14px);
+}
+.chart-panel{grid-row:span 2}
+.panel h2{
+  margin:0 0 18px;font-size:15px;text-transform:uppercase;
+  letter-spacing:1.2px;color:#dbe7f7;font-weight:750;
+}
+.panel h2:after{
+  content:"";display:block;width:34px;height:3px;margin-top:8px;border-radius:3px;background:var(--green);
+}
+canvas{
+  width:100%;height:520px;display:block;border:1px solid var(--border);
+  border-radius:13px;background:linear-gradient(180deg,#0b1627,#0a1422);
+}
+.notes{
+  margin-top:16px;background:rgba(7,17,30,.55);
+  border:1px solid var(--border);border-radius:13px;padding:16px 18px;
+}
+.notes h3{margin:0 0 10px;font-size:13px;color:var(--green2);text-transform:uppercase;letter-spacing:1px}
+.notes ul{margin:0;padding-left:18px}
+.notes li{margin:7px 0;color:var(--muted);font-size:12px;line-height:1.45}
+.specs{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.spec{
+  padding:15px;border:1px solid var(--border);border-radius:13px;
+  background:rgba(8,18,31,.45)
+}
+.spec h3{margin:0 0 14px;font-size:13px;letter-spacing:.8px;text-transform:uppercase}
+.supply{color:var(--purple)} .demand{color:var(--red)}
+.field-row{
+  display:grid;grid-template-columns:minmax(90px,1fr) minmax(75px,100px);
+  gap:10px;align-items:center;margin:9px 0
+}
+.field-row label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:700}
+input{
+  width:100%;padding:9px 10px;color:var(--text);
+  border:1px solid var(--border);border-radius:8px;background:var(--input);
+  outline:none;text-align:right;font-weight:650;
+  transition:.2s;border-color:rgba(255,255,255,.10);
+}
+input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(139,212,80,.10)}
+.experiments{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.experiments h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#dbe7f7}
+.exp-box{
+  background:linear-gradient(135deg,rgba(139,212,80,.09),rgba(80,227,210,.04));
+  padding:11px 13px;border:1px solid rgba(139,212,80,.18);border-radius:12px;
+}
+.results{
+  background:linear-gradient(135deg,rgba(73,167,255,.10),rgba(155,140,255,.06));
+  padding:12px 15px;border:1px solid rgba(73,167,255,.16);border-radius:12px;
+}
+.result-row{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;margin:8px 0;color:var(--muted)
+}
+.result-row span:last-child{color:var(--text);font-size:14px;font-weight:750}
+.controls{display:flex;gap:12px;align-items:center;margin-top:14px}
+button{
+  background:linear-gradient(135deg,var(--green),#66b83e);color:#07120a;
+  border:0;border-radius:9px;padding:10px 17px;font-weight:800;
+  cursor:pointer;box-shadow:0 7px 20px rgba(139,212,80,.18);transition:.2s;
+}
+button:hover{transform:translateY(-1px);box-shadow:0 10px 25px rgba(139,212,80,.25)}
+.small{font-size:11px;color:var(--muted)}
+.formula{
+  font-family:"SFMono-Regular",Consolas,monospace;font-size:11px;line-height:1.8;
+  color:#9ec7ef;background:rgba(73,167,255,.05);
+  border-left:3px solid var(--blue);padding:11px 13px;margin-top:14px;border-radius:0 9px 9px 0;
+}
+@media(max-width:1000px){
+  .grid{grid-template-columns:1fr}
+  .chart-panel{grid-row:auto}
+  canvas{height:420px}
+}
+@media(max-width:650px){
+  .wrap{padding:16px 12px 30px}
+  .titlebar{align-items:flex-start;gap:12px;flex-direction:column}
+  .specs,.experiments{grid-template-columns:1fr}
+  canvas{height:360px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="titlebar">
+    <h1>Marketplace Laboratory</h1>
+    <div class="tag">Single Supplier / Single Consumer</div>
+  </div>
+
+  <div class="grid">
+    <section class="panel chart-panel">
+      <h2>Market Equilibrium</h2>
+      <canvas id="chart" width="850" height="520"></canvas>
+      <div class="controls">
+        <button onclick="resetModel()">Reset</button>
+        <span class="small">Price is on the vertical axis; quantity is on the horizontal axis.</span>
+      </div>
+      <div class="formula">
+        Supply: P = Psmin + (Psmax-Psmin) × Q/Qmax<br>
+        Demand: P = Pdmax - (Pdmax-Pdmin) × Q/Qmax
+      </div>
+      <div class="notes">
+        <h3>Notes for users</h3>
+        <ul>
+          <li>Green = experiments; yellow = model specification; blue = results.</li>
+          <li>The equilibrium is where supply and demand intersect.</li>
+          <li>Try changing quantity limits, cost shocks, benefit boosts, or taxes.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Linear Segment Specification</h2>
+      <div class="specs">
+        <div class="spec">
+          <h3 class="supply">Supply Region: Supplier</h3>
+          <div class="field-row"><label>Qmax</label><input id="qmax" value="100"></div>
+          <div class="field-row"><label>Pmin</label><input id="psmin" value="0"></div>
+          <div class="field-row"><label>Pmax</label><input id="psmax" value="100"></div>
+        </div>
+        <div class="spec">
+          <h3 class="demand">Demand Region: Consumer</h3>
+          <div class="field-row"><label>Qmax</label><input id="dqmax" value="100"></div>
+          <div class="field-row"><label>Pmin</label><input id="pdmin" value="0"></div>
+          <div class="field-row"><label>Pmax</label><input id="pdmax" value="100"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Experiments & Outcomes</h2>
+      <div class="experiments">
+        <div>
+          <h3>Global Experiments</h3>
+          <div class="exp-box">
+            <div class="field-row"><label>Cost Shock</label><input id="costShock" value="0"></div>
+            <div class="field-row"><label>Benefit Boost</label><input id="benefitBoost" value="0"></div>
+            <div class="field-row"><label>Tax Supply</label><input id="taxSupply" value="0"></div>
+            <div class="field-row"><label>Tax Demand</label><input id="taxDemand" value="0"></div>
+          </div>
+        </div>
+        <div>
+          <h3>Global Outcomes</h3>
+          <div class="results">
+            <div class="result-row"><span>Quantity</span><span id="outQ">–</span></div>
+            <div class="result-row"><span>Price</span><span id="outP">–</span></div>
+            <div class="result-row"><span>Producer Surplus</span><span id="outPS">–</span></div>
+            <div class="result-row"><span>Consumer Surplus</span><span id="outCS">–</span></div>
+            <div class="result-row"><span>Tax Revenue</span><span id="outTax">–</span></div>
+            <div class="result-row"><span>Total Gains</span><span id="outTG">–</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const ids = ['qmax','psmin','psmax','dqmax','pdmin','pdmax','costShock','benefitBoost','taxSupply','taxDemand'];
+ids.forEach(id => document.getElementById(id).addEventListener('input', draw));
+
+function val(id){ return Number(document.getElementById(id).value) || 0; }
+
+function model(){
+  const qmax=Math.min(val('qmax'),val('dqmax'));
+  const ps0=val('psmin')+val('costShock')+val('taxSupply');
+  const ps1=val('psmax')+val('costShock')+val('taxSupply');
+  const pd0=val('pdmin')+val('benefitBoost')-val('taxDemand');
+  const pd1=val('pdmax')+val('benefitBoost')-val('taxDemand');
+
+  // P_s = ps0 + (ps1-ps0)Q/qmax
+  // P_d = pd1 - (pd1-pd0)Q/qmax
+  const denom=(ps1-ps0)+(pd1-pd0);
+  let q=denom!==0 ? qmax*(pd1-ps0)/denom : 0;
+  q=Math.max(0,Math.min(qmax,q));
+  const p=ps0+(ps1-ps0)*q/qmax;
+
+  const ps=Math.max(0,0.5*q*(p-ps0));
+  const cs=Math.max(0,0.5*q*(pd1-p));
+  const tax=Math.max(0,q*(val('taxSupply')+val('taxDemand')));
+  const tg=ps+cs+tax;
+
+  return {qmax,ps0,ps1,pd0,pd1,q,p,ps,cs,tax,tg};
+}
+
+function draw(){
+  const m=model(), c=document.getElementById('chart'), ctx=c.getContext('2d');
+  const W=c.width,H=c.height;
+  ctx.clearRect(0,0,W,H);
+
+  const L=65,R=25,T=25,B=55, pw=W-L-R, ph=H-T-B;
+  const x=q=>L+q/m.qmax*pw;
+  const maxP=Math.max(100,m.ps1,m.pd1,10);
+  const y=p=>T+(1-p/maxP)*ph;
+
+  // grid
+  ctx.font='12px Arial'; ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.fillStyle='#71839c';
+  for(let i=0;i<=10;i++){
+    const q=m.qmax*i/10, xx=x(q);
+    ctx.beginPath();ctx.moveTo(xx,T);ctx.lineTo(xx,T+ph);ctx.stroke();
+    ctx.fillText(Math.round(q),xx-8,T+ph+20);
+    const pp=maxP*i/10, yy=y(pp);
+    ctx.beginPath();ctx.moveTo(L,yy);ctx.lineTo(L+pw,yy);ctx.stroke();
+    ctx.fillText(Math.round(pp),18,yy+4);
+  }
+
+  // axes
+  ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,T+ph);ctx.lineTo(L+pw,T+ph);ctx.stroke();
+  ctx.fillStyle='#dbe7f7';ctx.font='600 14px Arial';
+  ctx.fillText('Quantity',L+pw/2-30,H-12);
+  ctx.save();ctx.translate(16,T+ph/2+25);ctx.rotate(-Math.PI/2);ctx.fillText('Price',0,0);ctx.restore();
+
+  // curves
+  ctx.lineWidth=3;
+  ctx.strokeStyle='#9b8cff';
+  ctx.beginPath();ctx.moveTo(x(0),y(m.ps0));ctx.lineTo(x(m.qmax),y(m.ps1));ctx.stroke();
+
+  ctx.strokeStyle='#ff6571';
+  ctx.beginPath();ctx.moveTo(x(0),y(m.pd1));ctx.lineTo(x(m.qmax),y(m.pd0));ctx.stroke();
+
+  // equilibrium guides
+  ctx.setLineDash([7,7]);ctx.strokeStyle='#8bd450';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x(m.q),y(m.p));ctx.lineTo(x(m.q),T+ph);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(L,y(m.p));ctx.lineTo(x(m.q),y(m.p));ctx.stroke();
+  ctx.setLineDash([]);
+
+  // point
+  ctx.fillStyle='#8bd450';ctx.beginPath();ctx.arc(x(m.q),y(m.p),6,0,2*Math.PI);ctx.fill();ctx.strokeStyle='#08111f';ctx.lineWidth=2;ctx.stroke();
+  ctx.font='700 13px Arial';ctx.fillStyle='#dff5cf';
+  ctx.fillText(`Q* = ${m.q.toFixed(1)}`,x(m.q)+8,y(m.p)-18);
+  ctx.fillText(`P* = ${m.p.toFixed(1)}`,x(m.q)+8,y(m.p)-2);
+
+  document.getElementById('outQ').textContent=m.q.toFixed(1);
+  document.getElementById('outP').textContent=m.p.toFixed(1);
+  document.getElementById('outPS').textContent=m.ps.toFixed(1);
+  document.getElementById('outCS').textContent=m.cs.toFixed(1);
+  document.getElementById('outTax').textContent=m.tax.toFixed(1);
+  document.getElementById('outTG').textContent=m.tg.toFixed(1);
+}
+
+function resetModel(){
+  const defaults={qmax:100,psmin:0,psmax:100,dqmax:100,pdmin:0,pdmax:100,costShock:0,benefitBoost:0,taxSupply:0,taxDemand:0};
+  for(const [k,v] of Object.entries(defaults)) document.getElementById(k).value=v;
+  draw();
+}
+draw();
+</script>
+</body>
+</html>
